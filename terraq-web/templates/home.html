@@ -1,0 +1,289 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraQ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        .hero-section {
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/d/d6/Apollo_11_Mission_Image_-_View_of_Earth_terminator_%285052744816%29.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 20px;
+        }
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .hero-section p {
+            font-size: 1.25rem;
+            color: #f0f0f0;
+        }
+        .hero-section .btn {
+            background-color: #007bff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.25rem;
+            transition: background-color 0.3s ease;
+        }
+        .hero-section .btn:hover {
+            background-color: #0056b3;
+        }
+        .capabilities-section {
+            background-color: #f8f9fa;
+            padding: 60px 20px;
+        }
+        .team-section {
+            background-color: #131313;
+            color: white;
+            padding: 40px 20px;
+        }
+        .credits-section {
+            background-color: #131313;
+            color: white;
+            padding: 40px 20px;
+        }
+        .hover-shadow:hover {
+            transform: translateY(-4px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="#">TerraQ</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#hero-section">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#capabilities-section">Capabilities</a></li>
+                <li class="nav-item"><a class="nav-link" href="#architecture-section">Architecture</a></li>
+                <li class="nav-item"><a class="nav-link" href="#publications-section">Publications</a></li>
+                <li class="nav-item"><a class="nav-link" href="#team-section">Team</a></li>
+                <li class="nav-item"><a class="nav-link" href="#funding-section">Funding</a></li>
+                <!-- <li class="nav-item"><a class="nav-link" href="#credits-section">Credits</a></li> -->
+                <!-- Highlighted Application link -->
+                <!-- <li class="nav-item">
+                    <a class="nav-link text-white bg-primary px-2 py-0 mt-2 rounded" 
+                       href="app" 
+                       style="font-weight: bold; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: background-color 0.3s;">
+                       Application
+                    </a>
+                </li> -->
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<div id="hero-section" class="hero-section d-flex align-items-center">
+    <div class="container text-white">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-md-end mb-4 mb-md-0">
+                <h1 class="display-4">Discover TerraQ</h1>
+                <p class="lead">Spatiotemporal Question-Answering for Satellite Image Archives.</p>
+                <a href="/app" class="btn btn-primary btn-lg">Go to the Application</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Capabilities Section -->
+<div id="capabilities-section" class="capabilities-section py-5 bg-light">    
+    <div class="container">
+        <!-- About Section -->
+        <div class="text-end mb-5">
+            <h2 class="fw-bold display-5">About TerraQ...</h2>
+            <h4 class="text-muted fst-italic">...a spatiotemporal question-answering engine for Sentinel-1 and Sentinel-2 archives.</h4>
+            <h4 class="text-muted fst-italic">...built to make Earth Observation data more accessible to the public and enhance the productivity of experts.</h4>
+        </div>
+        
+        <!-- Content Section -->
+        <div class="row align-items-center g-5">
+            <!-- Image Section -->
+            <div class="col-md-7 text-center">
+                <img src="../static/images/terraq-app.png" alt="Application Screenshot" class="img-fluid rounded shadow-lg">
+                <p class="text-muted mt-3 small fst-italic">Screenshot of the TerraQ application</p>
+            </div>
+            
+            <!-- Capabilities Section -->
+            <div class="col-md-5">
+                <div class="row g-4">
+                    <!-- Capability 1 -->
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm border-0 hover-shadow">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-primary">Natural Language Interface</h5>
+                                <p class="card-text text-muted">Interact using only natural language, no expert knowledge required.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Capability 2 -->
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm border-0 hover-shadow">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-primary">Sentinel mission images</h5>
+                                <p class="card-text text-muted">Access 1.5 milion Sentinel-1 and Sentinel-2 images of Europe.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Capability 3 -->
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm border-0 hover-shadow">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-primary">Rapid execution</h5>
+                                <p class="card-text text-muted">Built using a range of industry standard and custom built tools to ensure responsiveness.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capability 4 -->
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm border-0 hover-shadow">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold text-primary">Open Source</h5>
+                                <p class="card-text text-muted">All parts of the system are publicly available and built using open research.</p>
+                                <!-- GitHub Link -->
+                                <a href="https://github.com/AI-team-UoA/TerraQ" target="_blank" 
+                                   class="text-primary d-flex align-items-center text-decoration-none mt-3">
+                                    <i class="fab fa-github me-2"></i> View on GitHub
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Architecture Section -->
+<div id="architecture-section" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-start mb-5">
+            <h2 class="fw-bold display-5">Architecture</h2>
+            <h4 class="text-muted fst-italic mb-3">TerraQ leverages a pipeline architecture combining classical and modern natural language processing techniques.</h4>
+            <p class="text-muted">
+                The TerraQ application consists of four components:
+                <ol>
+                    <li class="text-muted">The <span class="text-primary">Web UI</span> serves as the point of interaction for the user. Through it the user can make textual requests in plain English, visualize results and download images.</li>
+                    <li class="text-muted">The <span class="text-primary">TerraQ pipeline</span> is responsible for understanding the user's request and translating it to a machine-executable SPARQL query.</li>
+                    <li class="text-muted">The <span class="text-primary">Knowledge Graph</span> is a purpose-built data repository that contains information about satellite images, administrative divisions, natural features and more.</li>
+                    <li class="text-muted">The <span class="text-primary">RDF engine</span> is tasked with executing the query over the target  Knowledge Graph and returning a result.</li>
+                </ol>
+            </p>
+        </div>
+        <div class="text-center">
+            <img src="../static/images/architecture-diagram.png" alt="System Architecture Diagram" class="img-fluid rounded">
+            <p class="text-muted mt-3 small fst-italic">Architecture diagram showcasing the components of <span class="text-primary">TerraQ</span>.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Publications Section -->
+<div id="publications-section" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="fw-bold display-5">Publications</h2>
+            <!-- <h4 class="text-muted fst-italic mb-3">TerraQ leverages a pipeline architecture combining classical and modern natural language processing techniques.</h4> -->
+            <p class="text-muted mt-5">
+                A full paper about TerraQ is under review for the 2025 IEEE International Geoscience and Remote Sensing Symposium (IGARSS 2025).
+            </p>
+        </div>
+    </div>
+</div>
+
+
+<!-- Team Section -->
+<div id="team-section" class="team-section py-5 text-white">
+    <div class="container">
+        <!-- Team Members Section -->
+        <div class="text-center">
+            <h2 class="fw-bold display-5">Our Team</h2>
+            <div class="row justify-content-center mt-4 mb-4">
+                <!-- Team Member 1 -->
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/skefalidis.jpeg" alt="Team Member 1" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h5 class="fw-bold">Sergios-Anestis Kefalidis</h5>
+                    <p class="small fst-italic">Question-Answering Engine Developer, PhD Candidate</p>
+                    <p class="small">Development of the TerraQ pipeline and Web interface.</p>
+                </div>
+                <!-- Team Member 2 -->
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/kplas.jpeg" alt="Team Member 2" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h5 class="fw-bold">Kostas Plas</h5>
+                    <p class="small fst-italic">Knowledge Graph Engineer, PhD Candidate</p>
+                    <p class="small">Data integration and Knowledge Graph construction.</p>
+                </div>
+                <!-- Team Member 3 -->
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/mkoubarakis.jpg" alt="Team Member 3" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h5 class="fw-bold">Manolis Koubarakis</h5>
+                    <p class="small fst-italic">Scientific Supervisor, Professor</p>
+                    <p class="small">Research supervision and funding acquisition.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Funding Section -->
+<div id="funding-section" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="fw-bold display-5">Funding</h2>
+            <div class="row justify-content-center mt-4 mb-4">
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/esa.png" alt="Funder 1" class="img-fluid mb-2" style="width: 150px; height: 150px; object-fit: contain;">
+                    <h5 class="fw-bold">European Space Agency</h5>
+                    <p class="small text-muted">TerraQ was developed in the context of <a href="https://eo4society.esa.int/projects/da4dte/">DA4DTE</a></p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/iky.jpeg" alt="Funder 2" class="img-fluid mb-2" style="width: 150px; height: 150px; object-fit: contain;">
+                    <h5 class="fw-bold">Greek State Scholarship Foundation</h5>
+                    <p class="small text-muted">"NIK. D. XRYSOVERGI" PhD scholarship</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <img src="../static/images/athena.png" alt="Funder 3" class="img-fluid mb-2" style="width: 150px; height: 150px; object-fit: contain;">
+                    <h5 class="fw-bold">Athena RC</h5>
+                    <p class="small text-muted">"GD.402. ARCHI-YPPhD-0824" PhD scholarship</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Credits Section -->
+<div id="credits-section" class="credits-section text-center">  
+    <div class="container">
+        <!-- <div class="row justify-content-center mt-4 mb-4">
+            <div class="col-md-6 text-center">
+                
+            </div>
+            <div class="col-md-6 text-center">
+
+            </div>
+        </div> -->
+        <div class="row justify-content-center mt-4 mb-4">
+            <p class="mb-0">&copy; 2025 <a href="https://ai.di.uoa.gr/">AI Team</a>. All Rights Reserved.</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

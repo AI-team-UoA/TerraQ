@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/terraformer@1.0.7"></script>
+    <script src="https://unpkg.com/terraformer-wkt-parser@1.1.2"></script> 
+    <script src="../static/js/Leaflet.ImageOverlay.Rotated.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Bootstrap JS and Popper (required for modals) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .hover-shadow:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        .list-group-item {
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2 sticky-top shadow-sm">
+        <div class="container-fluid justify-content-center">
+            <!-- <img src="path/to/logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top me-2"> -->
+            <span class="navbar-brand mb-0 h1">TerraQ: Spatiotemporal Question-Answering on Satellite Image Archives</span>
+        </div>
+    </nav>
+    
+    <div class="container-fluid" style="max-width: 90%; margin: 0 auto;">
+        <form method="POST" action="/app" class="mb-4 mt-4">
+            <div class="d-flex justify-content-center align-items-center" style="width: 50%; margin: 0 auto;">
+                <div class="input-group">
+                    <span class="input-group-text" id="basic-addon1">
+                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="Your requests can involve image metadata and/or spatiotemporal constraints. The knowledge repository of the system includes spatial information about Sentinel-1 and Sentinel-2 images, administrative divisions, rivers, ports, seas and various points of interest."></i>
+                    </span>
+                    <input type="text" class="form-control" id="question" name="question" placeholder="Type your request (e.g., 'Show me Sentinel-2 images of Paris in 2022')">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search me-2"></i>Submit
+                    </button>
+                </div>
+            </div>
+            <!-- Hint Text -->
+            <div class="text-center mt-2">
+                <small class="form-text text-muted">Hint: Check out some <a href="#" onclick="fetchSuggestion()">suggestions</a> to understand the system's capabilities.</small>
+            </div>
+        </form>
+
+        <div class="row">
+            <!-- Left Column for URIs -->
+            <div class="col-lg-6 col-md-6">
+                <div class="card shadow-lg mb-4" style="min-height: 500px;"> <!-- Increased shadow -->
+                    <div class="card-header bg-light-subtle" id="results-card-header"> <!-- Slightly different background color -->
+                        <h3 class="card-title mb-0">Results</h3>
+                        <span> <em>{{ question }}</em></span>
+                    </div>
+                    <div class="card-body" id="results-card-body">
+                        {% if uris %}
+                            <!-- Loading Spinner -->
+                            <div id="loading-spinner" class="text-center" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Results List -->
+                            {% set items_per_page = 10 %}
+                            {% set total_pages = (uris|length // items_per_page) + (1 if uris|length % items_per_page > 0 else 0) %}
+                            {% set current_page = current_page or 1 %}
+                            <ul id="results-list" class="list-group">
+                                {% for uri in uris[(current_page - 1) * items_per_page : current_page * items_per_page] %}
+                                <li class="list-group-item hover-shadow">
+                                    {{ loop.index }}.
+                                    <input type="checkbox" class="uri-checkbox" id="checkbox-{{ loop.index }}" data-uri="{{ uri }}">
+                                    <label for="checkbox-{{ loop.index }}">
+                                        <a href="#" class="uri-link" data-uri="{{ uri }}">{{ uri }}</a>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                
+                            <br>
+                            
+                            <!-- Pagination controls -->
+                            <nav>
+                                <ul id="pagination" class="pagination justify-content-center">
+                                    {% for page in range(1, total_pages + 1) %}
+                                        <li class="page-item {% if page == current_page %}active{% endif %}">
+                                            <a class="page-link" href="javascript:void(0);" onclick="changePage('{{ page }}')">
+                                                {{ page }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column for Map and Thumbnails -->
+            <div class="col-lg-6 col-md-6">
+                <div class="card shadow-lg mb-4"> <!-- Increased shadow -->
+                    <div class="card-header bg-light-subtle" id="map-header"> <!-- Slightly different background color -->
+                        <h3 class="card-title mb-0">Map</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map" style="height: 500px; border-radius: 0 0 8px 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Images Section -->
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <div class="card shadow-lg" style="min-height: 300px;">
+                    <!-- Card Header with Flexbox -->
+                    <div class="card-header bg-light-subtle d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">Images</h3>
+                        <button id="download-all-button" class="btn btn-sm btn-outline-success">Download All</button>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body" style="overflow-y: auto; max-height: 500px;">
+                        <div id="thumbnail-container" class="mt-4 thumbnail-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <div class="modal fade" id="thumbnailModal" tabindex="-1" aria-labelledby="thumbnailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="thumbnailModalLabel">Image Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Modal content with image on the left and information on the right -->
+                    <div class="row">
+                        <h3 id="modal-title" class="text-center" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;"></h3>
+                        <div class="d-flex justify-content-left align-items-left" style="width: 100%; margin: 0 auto;">
+                            <img id="modal-image" src="" alt="Image not found" class="img-fluid" style="margin-right: 10px;" />
+                            <div>
+                                <div>
+                                    <strong>Timestamp:</strong> <span id="timestamp">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Product Type:</strong> <span id="product-type">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Orbit Number:</strong> <span id="orbit-number">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Processing Level:</strong> <span id="processing-level">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Cloud coverage:</strong> <span id="cloud-coverage">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Vegetation coverage:</strong> <span id="vegetation-coverage">Placeholder</span>
+                                </div>
+                                <div>
+                                    <strong>Snow/Ice coverage:</strong> <span id="snow-ice-coverage">Placeholder</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Download All Selected Images as a Zip File
+        document.getElementById('download-all-button').addEventListener('click', async function () {
+            const selectedImages = document.querySelectorAll('.uri-checkbox:checked');
+            if (selectedImages.length === 0) {
+                alert('No images selected. Please select images to download.');
+                return;
+            }
+
+            const zip = new JSZip();
+            const folder = zip.folder('images'); // Create a folder in the zip for images
+
+            for (let i = 0; i < selectedImages.length; i++) {
+                const uri = selectedImages[i].getAttribute('data-uri');
+
+                try {
+                    // Fetch thumbnail data
+                    const wktThumbnailResponse = await fetch('/get_wkt_thumbnail', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ uri: uri })
+                    });
+
+                    const thumbnailData = await wktThumbnailResponse.json();
+                    const imageUrl = thumbnailData.thumbnail;
+
+                    // Fetch image data
+                    const imageResponse = await fetch('/download-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ image_url: imageUrl })
+                    });
+
+                    if (imageResponse.ok) {
+                        const imageBlob = await imageResponse.blob();
+                        const arrayBuffer = await imageBlob.arrayBuffer(); // Convert blob to ArrayBuffer
+                        folder.file(`image-${i + 1}.jpg`, arrayBuffer); // Add file to zip
+                    } else {
+                        console.error(`Failed to download image ${i + 1}:`, await imageResponse.json());
+                    }
+                } catch (error) {
+                    console.error(`Error processing image ${i + 1}:`, error);
+                }
+            }
+
+            // Generate the zip file and prompt download
+            zip.generateAsync({ type: 'blob' }).then(function (content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'images.zip';
+                link.click();
+            });
+        });
+    </script>
+
+    <script>
+        // Function to set the map height to match the Results card body
+        function syncHeights() {
+            const resultsCardHeader = document.getElementById('results-card-header');
+            const resultsCardBody = document.getElementById('results-card-body');
+            const mapHeader = document.getElementById('map-header');
+            const mapElement = document.getElementById('map');
+    
+            if (resultsCardBody && mapElement) {
+                // Set the map height to match the Results card body height
+                mapElement.style.height = `${resultsCardBody.offsetHeight + resultsCardHeader.offsetHeight - mapHeader.offsetHeight}px`;
+            }
+        }
+    
+        // Sync heights on page load and window resize
+        window.addEventListener('load', syncHeights);
+        window.addEventListener('resize', syncHeights);
+    </script>
+
+    <!-- Bootstrap JS (for Tooltip) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            var tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+            
+            // Apply inline CSS directly to the tooltip after it is created
+            tooltipTriggerEl.addEventListener('shown.bs.tooltip', function () {
+                var tooltipElement = tooltip.tip.querySelector('.tooltip-inner');
+                tooltipElement.style.maxWidth = 'none';  // Remove default max width
+                tooltipElement.style.width = '500px';    // Set the desired width
+            });
+    
+            return tooltip;
+        });
+    </script>
+
+    <script>
+        // Function to fetch and set suggestion when the link is clicked
+        async function fetchSuggestion() {
+            try {
+                const response = await fetch('/suggestion');
+                if (response.ok) {
+                    const suggestion = await response.text();
+                    document.getElementById('question').value = suggestion;
+                }
+            } catch (error) {
+                console.error('Error fetching suggestion:', error);
+            }
+        }
+    </script>    
+
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        // Function to fetch WKT and thumbnail data
+        const fetchWKTAndThumbnail = async (uri) => {
+            const response = await fetch('/get_wkt_thumbnail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ uri: uri })
+            });
+            return await response.json();
+        };  
+
+        // Function to display WKT on the map
+        const displayWKTOnMap = (wkt, uri, id) => {
+            const geojson = Terraformer.WKT.parse(wkt);
+            L.geoJSON(geojson, {
+                id: `layer-${id}`,
+                onEachFeature: (feature, layer) => {
+                    const marker = L.marker(layer.getBounds().getCenter(), {
+                        id: `marker-${id}`,
+                    })
+                        .bindTooltip(id.replace("checkbox-", ""), { permanent: true, offset: [0, 0] })
+                        .addTo(map);
+                    layer.bindPopup(uri || "No URI available");
+                }
+            }).addTo(map);
+            map.fitBounds(L.geoJSON(geojson).getBounds());
+        };
+
+        // Function to display thumbnail in the container
+        const displayThumbnail = (thumbnail, uri, id) => {
+            const thumbnailContainer = document.getElementById('thumbnail-container');
+
+            const imgBox = document.createElement("div");
+            imgBox.style.border = "1px solid #ccc";
+            imgBox.style.padding = "5px";
+            imgBox.style.margin = "10px";
+            imgBox.style.display = "inline-block";
+            imgBox.style.textAlign = "center";
+            imgBox.style.width = "120px";
+            imgBox.id = `frame-${id}`;
+
+            const img = document.createElement("img");
+            img.src = thumbnail;
+            img.alt = "Image not found";
+            img.id = `thumbnail-${id}`;
+            img.style.height = "120px";
+            img.style.objectFit = "contain";
+            img.style.marginTop = "5px";
+            img.classList.add("img-fluid");
+
+            const number = document.createElement("div");
+            number.textContent = id.replace("checkbox-", "");
+            number.style.marginTop = "5px";
+            number.style.fontWeight = "bold";
+
+            imgBox.appendChild(img);
+            imgBox.appendChild(number);
+            thumbnailContainer.appendChild(imgBox);
+
+            // Add click event to show modal
+            imgBox.addEventListener("click", () => showModal(thumbnail, uri));
+        };
+
+        // Function to show modal with image metadata
+        const showModal = (thumbnail, uri) => {
+            const modalImage = document.getElementById("modal-image");
+            const modalTitle = document.getElementById("modal-title");
+
+            modalImage.src = thumbnail;
+            modalTitle.textContent = uri;
+            modalTitle.title = uri;
+
+            fetch(`/image-metadata?uri=${encodeURIComponent(uri)}`)
+                .then((response) => {
+                    if (!response.ok) throw new Error("Failed to fetch image properties");
+                    return response.json();
+                })
+                .then((data) => {
+                    document.getElementById("timestamp").textContent = data.timestamp || "N/A";
+                    document.getElementById("cloud-coverage").textContent = data.cloudCoverage || "N/A";
+                    document.getElementById("vegetation-coverage").textContent = data.vegetationCoverage || "N/A";
+                    document.getElementById("snow-ice-coverage").textContent = data.snowIcePercentage || "N/A";
+                    document.getElementById("product-type").textContent = data.productType || "N/A";
+                    document.getElementById("orbit-number").textContent = data.orbitNumber || "N/A";
+                    document.getElementById("processing-level").textContent = data.processingLevel || "N/A";
+                })
+                .catch((error) => {
+                    console.error("Error fetching image properties:", error);
+                    document.getElementById("timestamp").textContent = "Error";
+                    document.getElementById("cloud-coverage").textContent = "Error";
+                    document.getElementById("vegetation-coverage").textContent = "Error";
+                    document.getElementById("snow-ice-coverage").textContent = "Error";
+                    document.getElementById("product-type").textContent = "Error";
+                    document.getElementById("orbit-number").textContent = "Error";
+                    document.getElementById("processing-level").textContent = "Error";
+                });
+
+            const modal = new bootstrap.Modal(document.getElementById("thumbnailModal"));
+            modal.show();
+        };
+
+        // Function to handle checkbox changes
+        const handleCheckboxChange = async (event) => {
+            console.log("called");
+            if (!event.target.classList.contains('uri-checkbox')) return;
+
+            const id = event.target.getAttribute('id');
+            const uri = event.target.getAttribute('data-uri');
+
+            if (!event.target.checked) {
+                map.eachLayer((layer) => {
+                    if (layer.options.id === `marker-${id}` || layer.options.id === `layer-${id}`) {
+                        map.removeLayer(layer);
+                    }
+                });
+                const frame = document.getElementById(`frame-${id}`);
+                if (frame) frame.remove();
+                return;
+            }
+
+            const { wkt, thumbnail } = await fetchWKTAndThumbnail(uri);
+            displayWKTOnMap(wkt, uri, id);
+            displayThumbnail(thumbnail, uri, id);
+        };
+
+        // Automatically check the first 10 checkboxes on page load
+        const checkFirst10Checkboxes = () => {
+            const checkboxes = document.querySelectorAll('.uri-checkbox');
+            checkboxes.forEach((checkbox, index) => {
+                console.log("1");
+                if (index < 10) {
+                    console.log("2");
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event('change'));
+                    console.log("3");
+                    handleCheckboxChange({ target: checkbox });
+                }
+            });
+        };
+
+        // Event listener for DOMContentLoaded
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("results-list").addEventListener('change', handleCheckboxChange);
+            checkFirst10Checkboxes();
+        });
+    </script>
+
+    <script>
+        // Use Jinja2 to safely inject uris as a JSON object in JavaScript
+        var uris = {{ uris | tojson | safe }};
+        var itemsPerPage = 10;
+        var totalPages = Math.ceil(uris.length / itemsPerPage);
+        
+        // Function to change the page and update the results
+        function changePage(page) {
+            var startIndex = (page - 1) * itemsPerPage;
+            var endIndex = startIndex + itemsPerPage;
+            var currentUris = uris.slice(startIndex, endIndex);
+            
+            // Update the results list
+            var resultsList = document.getElementById("results-list");
+            resultsList.innerHTML = ''; // Clear current list
+
+            // Add the new items to the list
+            currentUris.forEach(function(uri, index) {
+                var li = document.createElement("li");
+                li.classList.add("list-group-item");
+
+                var checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.classList.add("uri-checkbox");
+                checkbox.id = "checkbox-" + (startIndex + index + 1);
+                checkbox.setAttribute("data-uri", uri);
+
+                map.eachLayer(function (layer) {
+                    if (layer.options.id === 'layer-' + checkbox.getAttribute('id')) {
+                        checkbox.checked = true;
+                    }
+                });
+
+                var label = document.createElement("label");
+                label.setAttribute("for", "checkbox-" + (startIndex + index + 1));
+
+                var link = document.createElement("a");
+                link.href = "#";
+                link.classList.add("uri-link");
+                link.setAttribute("data-uri", uri);
+                link.textContent = uri;
+
+                label.innerHTML = "&nbsp;";
+                label.appendChild(link);
+                
+                var idxNumber = document.createTextNode((startIndex + index + 1) + ". ");
+
+                li.appendChild(idxNumber);
+                li.appendChild(checkbox);
+                li.appendChild(label);
+                resultsList.appendChild(li);
+            });
+
+            // Update the pagination
+            var pagination = document.getElementById("pagination");
+            var paginationItems = pagination.querySelectorAll(".page-item");
+            paginationItems.forEach(function(item) {
+                item.classList.remove("active");
+            });
+            
+            // Set the active class on the current page
+            paginationItems[page - 1].classList.add("active");
+        }
+    </script>
+</body>
+</html>
