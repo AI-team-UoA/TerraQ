@@ -139,7 +139,7 @@ def image_metadata():
 @app.route("/suggestion", methods=["GET"])
 def suggestion():
     suggestions = [
-        "Give me 50 rivers in Finland.",
+        "Give me 50 images of rivers in Finland.",
         "I want 3 images with vegetation percentage over 80%.",
         "Give me images with snow coverage over 2%.",
         "Find 12 sentinel-2 images with cloud coverage over 15% and vegetation percentage less than 10%.",
@@ -202,4 +202,4 @@ if __name__ == '__main__':
     USERNAME = vars(args)['USERNAME']
     PASSWORD = vars(args)['PASSWORD']
     
-    app.run(debug=True)
+    app.run(debug=True, port=10000)
